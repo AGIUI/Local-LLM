@@ -145,10 +145,16 @@ def prepare_environment():
   
     # os.environ['DGGML_CUBLAS']="ON"
     if not is_installed('chatglm_cpp'):
-        run_pip(f"install chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
+        run_pip(f"install ./python/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
  
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")
+
+    if not is_installed('fastapi'):
+        run_pip(f"install fastapi -i https://pypi.tuna.tsinghua.edu.cn/simple", "fastapi")
+
+    if not is_installed('sse_starlette'):
+        run_pip(f"install sse-starlette -i https://pypi.tuna.tsinghua.edu.cn/simple", "sse_starlette")
 
     if not is_installed("pydantic_settings"):
         run_pip(f"install pydantic-settings -i https://pypi.tuna.tsinghua.edu.cn/simple","pydantic_settings")
