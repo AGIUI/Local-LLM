@@ -1,11 +1,7 @@
 # 启动
 
-* win 系统
-```
-app.bat
-```
+* win 系统 双击 app.bat 一键启动
 
-* mac 系统
 
 
 * 运行成功后把 http://127.0.0.1:8000 填写到 ChatGPT设置里的 API URL 地址里
