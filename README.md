@@ -14,6 +14,10 @@ app.bat
 # 模型
 默认使用 chatglm2-ggml-q4_0.bin 
 
+链接：https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ 
+提取码：como 
+
+
 * 其他模型下载 https://huggingface.co/Xorbits/chatglm2-6B-GGML
 
 * 模型下载后修改api.py里的文件名
