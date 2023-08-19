@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "chatglm2-ggml-q4_0.bin"
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
 print(DEFAULT_MODEL_PATH,'DEFAULT_MODEL_PATH')
 
 class Settings(BaseSettings):
@@ -61,7 +61,10 @@ def run_with_lock(method):
 async def startup_event():
     global pipeline
     pipeline = chatglm_cpp.Pipeline(settings.model)
+    res=pipeline.chat(["hi"])
+    print(res)
     logging.info("End Loading chatglm model")
+    
 
 
 @run_with_lock

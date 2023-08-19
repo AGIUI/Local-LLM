@@ -39,27 +39,12 @@ goto :show_stdout_stderr
 :activate_venv
 set PYTHON="%VENV_DIR%\Scripts\Python.exe"
 echo venv %PYTHON%
-goto :accelerate
-
-:skip_venv
-if [%ACCELERATE%] == ["True"] goto :accelerate
 goto :launch
 
-:accelerate
-echo Checking for accelerate
-set ACCELERATE="%VENV_DIR%\Scripts\accelerate.exe"
-if EXIST %ACCELERATE% goto :accelerate_launch
-goto :launch
 
 :launch
 echo ## Launch Run
-%PYTHON% launch.py %*
-pause
-exit /b
-
-:accelerate_launch
-echo Accelerating
-%ACCELERATE% launch --num_processes=6 launch.py
+%PYTHON% python\launch.py %*
 pause
 exit /b
 
