@@ -8,7 +8,7 @@
 
 
 # 模型
-默认使用 chatglm2-ggml-q4_0.bin 
+默认使用 chatglm2-ggml-q4_0.bin，放到目录 Local-LLM/models/ 
 
 链接：https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ 
 提取码：como 
