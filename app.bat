@@ -41,7 +41,6 @@ set PYTHON="%VENV_DIR%\Scripts\Python.exe"
 echo venv %PYTHON%
 goto :launch
 
-
 :launch
 echo ## Launch Run
 %PYTHON% python\launch.py %*
