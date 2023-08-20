@@ -11,7 +11,7 @@
 
 * 其他模型下载 https://huggingface.co/Xorbits/chatglm2-6B-GGML
 
-* 模型下载后修改api.py里的文件名
+* 如果使用更高精度的模型，下载后需要修改launch.py 和 api.py里对应的文件名
 
 
 | Name | Quant method | Bits | Size |
@@ -25,12 +25,16 @@
 
 
 # 启动
-* win 系统 双击 app.bat 一键启动
-* mac 打开终端 cd xxx/Local-LLM ，然后 ./app.sh 回车
+## Webui
 
+* win 系统 双击 webui-win.bat 
+* mac 打开终端 cd xxx/Local-LLM ，然后 ./webui-mac.sh 回车
 
+## API模式
+
+* win 系统 双击 api-win.bat 
+* mac 打开终端 cd xxx/Local-LLM ，然后 ./api-mac.sh 回车
 * 运行成功后把 http://127.0.0.1:8000 填写到 ChatGPT设置里的 API URL 地址里
-
 
 
 # 问题
@@ -42,8 +46,12 @@ ERROR: chatglm_cpp-0.2.5-cp38-cp38-macosx_11_1_x86_64.whl is not a supported whe
 原因：
 pip认为big sur是macOS_10_9。我将所有捆绑的车轮文件重命名为macos_10_9然后它就工作了。
 
-mac 查看：
+mac 查看线程数：
 sysctl hw.logicalcpu
 
 hw.logicalcpu: 8
 
+
+# 感谢开源项目：
+[chatglm.cpp](https://github.com/li-plus/chatglm.cpp)
+[Xorbits](https://huggingface.co/Xorbits/chatglm2-6B-GGML)

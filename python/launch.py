@@ -5,26 +5,16 @@ import importlib.util
 import shlex
 import platform
 import json
+from pathlib import Path
 
 import argparse
 
 
 commandline_args = os.environ.get('COMMANDLINE_ARGS', "")
-sys.argv += shlex.split(commandline_args)
 
-
-# 创建解析器对象
-parser = argparse.ArgumentParser(description="命令行参数示例")
-
-# 添加参数
-# parser.add_argument('--reinstall_chatglm_cpp', type=bool, help="重新安装chatglm_cpp")
-
-
-# 解析命令行参数
-args = parser.parse_args()
 
 # 打印参数值
-print("args:", args)
+print("args:", commandline_args)
 
 
 
@@ -53,15 +43,14 @@ def check_python_version():
     if is_windows:
         supported_minors = [10]
     else:
-        supported_minors = [7, 8, 9, 10, 11]
+        supported_minors = [8, 9, 10]
 
     if not (major == 3 and minor in supported_minors):
         print(f"""
-INCOMPATIBLE PYTHON VERSION
-
-This program is tested with 3.10.6 Python, but you have {major}.{minor}.{micro}.
+PYTHON 版本不匹配
+你的 PYTHON 版本： {major}.{minor}.{micro}
+本程序在 PYTHON 3.10 完成测试.
 """)
-
 
 def run(command, desc=None, errdesc=None, custom_env=None, live=False):
     if desc is not None:
@@ -121,6 +110,7 @@ def prepare_environment():
     # run_pip(f"install insightface==0.7.3 -i https://pypi.tuna.tsinghua.edu.cn/simple", "insightface")
     # run_pip(f"install onnxruntime==1.15.0 -i https://pypi.tuna.tsinghua.edu.cn/simple", "onnxruntime")
 
+    #!!!直接使用ggml文件不需要安装torch
     # if not is_installed("torch"):
     #     run_pip(f"install torch>=2.0 -i https://pypi.tuna.tsinghua.edu.cn/simple","torch")
 
@@ -135,11 +125,15 @@ def prepare_environment():
   
     # os.environ['DGGML_CUBLAS']="ON"    
     if not is_installed('chatglm_cpp'):
+        #安装编译好的安装包
         if sys.platform.startswith("win"):
-            run_pip(f"install ./python/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
+            run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.4-cp310-cp310-win_amd64.whl", "chatglm_cpp")
         elif sys.platform.startswith("darwin"):
-            run_pip(f"install ./python/chatglm_cpp-0.2.5-cp38-cp38-macosx_10_9_x86_64.whl", "chatglm_cpp")
-            
+            run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.4-cp310-cp310-macosx_10_9_x86_64.whl", "chatglm_cpp")
+        #自行编译
+        #run_pip(f"install chatglm_cpp/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
+        
+
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")
 
@@ -152,6 +146,8 @@ def prepare_environment():
     if not is_installed("pydantic_settings"):
         run_pip(f"install pydantic-settings -i https://pypi.tuna.tsinghua.edu.cn/simple","pydantic_settings")
  
+    if not is_installed("gradio"):
+        run_pip(f"install gradio -i https://pypi.tuna.tsinghua.edu.cn/simple","gradio")
 
     check_python_version()
 
@@ -161,6 +157,11 @@ def prepare_environment():
     print(f"Commit hash: {commit}")
 
     print(platform.system(),platform.python_version().startswith("3.10"))
+    
+    DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
+    
+    if not os.path.exists(DEFAULT_MODEL_PATH):
+        print('模型文件不存在：',DEFAULT_MODEL_PATH)
 
     # 安装torch GPU版本
     # if args.reinstall_torch or not is_installed("torch") or not is_installed("torchvision"):
@@ -179,9 +180,13 @@ def prepare_environment():
 
 
 def start():
-    print(f"Launching API server")
-    import api
-    api.start()
+    if commandline_args=='--web':
+        import webui
+        webui.start()
+    else:
+        print(f"Launching API server")
+        import api
+        api.start()
 
 
 if __name__ == "__main__":

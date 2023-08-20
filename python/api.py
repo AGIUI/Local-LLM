@@ -15,11 +15,10 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
-print(DEFAULT_MODEL_PATH,'模型地址')
+print('####模型地址',DEFAULT_MODEL_PATH)
 
 num_threads=8
-
-print("线程数",num_threads)
+print("####线程数",num_threads)
 
 class Settings(BaseSettings):
     server_name: str = "ChatGLM CPP API Server"
