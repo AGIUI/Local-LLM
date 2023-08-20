@@ -94,6 +94,8 @@ async def process_generate(history, chat_model, body, request):
     if len(history) % 2 == 0:
         history = ["hi"] + history
 
+    print('history',history)
+
     async def generate():
         response = ""
         async for delta in await stream_chat(request, history, body):
