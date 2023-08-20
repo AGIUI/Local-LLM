@@ -36,3 +36,14 @@
 # 问题
 mac提示没有app.sh权限
 输入：chmod 777 app.sh
+
+mac pip安装提示：
+ERROR: chatglm_cpp-0.2.5-cp38-cp38-macosx_11_1_x86_64.whl is not a supported wheel on this platform.
+原因：
+pip认为big sur是macOS_10_9。我将所有捆绑的车轮文件重命名为macos_10_9然后它就工作了。
+
+mac 查看：
+sysctl hw.logicalcpu
+
+hw.logicalcpu: 8
+

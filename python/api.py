@@ -15,7 +15,11 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
-print(DEFAULT_MODEL_PATH,'DEFAULT_MODEL_PATH')
+print(DEFAULT_MODEL_PATH,'模型地址')
+
+num_threads=8
+
+print("线程数",num_threads)
 
 class Settings(BaseSettings):
     server_name: str = "ChatGLM CPP API Server"
@@ -77,7 +81,7 @@ async def stream_chat(request, history, body):
         top_k=body.top_k,
         top_p=body.top_p,
         temperature=body.temperature,
-        num_threads=16,
+        num_threads=num_threads,
     ):
         # debug log
         print(piece, end="", flush=True)

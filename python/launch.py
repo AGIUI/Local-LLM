@@ -60,16 +60,6 @@ def check_python_version():
 INCOMPATIBLE PYTHON VERSION
 
 This program is tested with 3.10.6 Python, but you have {major}.{minor}.{micro}.
-If you encounter an error with "RuntimeError: Couldn't install torch." message,
-or any other error regarding unsuccessful package (library) installation,
-please downgrade (or upgrade) to the latest version of 3.10 Python
-and delete current Python and "venv" folder in WebUI's directory.
-
-You can download 3.10 Python from here: https://www.python.org/downloads/release/python-3109/
-
-{"Alternatively, use a binary release of WebUI: https://github.com/AUTOMATIC1111/stable-diffusion-webui/releases" if is_windows else ""}
-
-Use --skip-python-version-check to suppress this warning.
 """)
 
 
@@ -143,10 +133,13 @@ def prepare_environment():
     # if not is_installed("tabulate"):
     #     run_pip(f"install tabulate -i https://pypi.tuna.tsinghua.edu.cn/simple","tabulate")
   
-    # os.environ['DGGML_CUBLAS']="ON"
+    # os.environ['DGGML_CUBLAS']="ON"    
     if not is_installed('chatglm_cpp'):
-        run_pip(f"install ./python/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
- 
+        if sys.platform.startswith("win"):
+            run_pip(f"install ./python/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
+        elif sys.platform.startswith("darwin"):
+            run_pip(f"install ./python/chatglm_cpp-0.2.5-cp38-cp38-macosx_10_9_x86_64.whl", "chatglm_cpp")
+            
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")
 
