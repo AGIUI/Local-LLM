@@ -1,8 +1,16 @@
+# 离线安装包
+
+链接：https://pan.baidu.com/s/10WpOp-s543-TZyYGCf6lhQ 
+提取码：como
+
+
 # 安装python
+
 * 推荐使用python3.10
 
 
 # 下载模型
+
 默认使用 chatglm2-ggml-q4_0.bin，放到目录 Local-LLM/models/ 
 
 链接：https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ 
@@ -25,24 +33,30 @@
 
 
 # 启动
+
 ## Webui
 
 * win 系统 双击 webui-win.bat 
+
 * mac 打开终端 cd xxx/Local-LLM ，然后 ./webui-mac.sh 回车
 
 ## API模式
 
 * win 系统 双击 api-win.bat 
+
 * mac 打开终端 cd xxx/Local-LLM ，然后 ./api-mac.sh 回车
+
 * 运行成功后把 http://127.0.0.1:8000 填写到 ChatGPT设置里的 API URL 地址里
 
 
 # 问题
+
 mac提示没有app.sh权限
 输入：chmod 777 app.sh
 
 mac pip安装提示：
 ERROR: chatglm_cpp-0.2.5-cp38-cp38-macosx_11_1_x86_64.whl is not a supported wheel on this platform.
+
 原因：
 pip认为big sur是macOS_10_9。我将所有捆绑的车轮文件重命名为macos_10_9然后它就工作了。
 
@@ -53,5 +67,7 @@ hw.logicalcpu: 8
 
 
 # 感谢开源项目：
+
 [chatglm.cpp](https://github.com/li-plus/chatglm.cpp)
+
 [Xorbits](https://huggingface.co/Xorbits/chatglm2-6B-GGML)
