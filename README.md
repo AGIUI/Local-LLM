@@ -26,7 +26,13 @@
 
 # 启动
 * win 系统 双击 app.bat 一键启动
+* mac 打开终端 cd xxx/Local-LLM ，然后 ./app.sh 回车
 
 
 * 运行成功后把 http://127.0.0.1:8000 填写到 ChatGPT设置里的 API URL 地址里
 
+
+
+# 问题
+mac提示没有app.sh权限
+输入：chmod 777 app.sh
