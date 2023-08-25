@@ -1,73 +1,81 @@
-# 离线安装包
+# Local-LLM 本地大模型
+人人可拥有的本地模型服务，目前支持chatglm2和Llama-2。
 
-链接：https://pan.baidu.com/s/10WpOp-s543-TZyYGCf6lhQ 
-提取码：como
-
-
-# 安装python
+### 安装python
 
 * 推荐使用python3.10
+* [python下载地址](https://www.python.org/ftp/python/3.10.0/)
 
 
-# 下载模型
-
-默认使用 chatglm2-ggml-q4_0.bin，放到目录 Local-LLM/models/ 
-
-链接：https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ 
-提取码：como 
+### 下载模型
+- 请下载 chatglm2-ggml-q4_0.bin 和 Chinese-Llama-2-7b-ggml-q4.bin
+- 放到目录 Local-LLM/models/xxx.bin
 
 
-* 其他模型下载 https://huggingface.co/Xorbits/chatglm2-6B-GGML
-
-* 如果使用更高精度的模型，下载后需要修改launch.py 和 api.py里对应的文件名
+- 下载： [百度网盘链接](https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ) 提取码：como 
 
 
-| Name | Quant method | Bits | Size |
-|------|--------------|------|------|
-| chatglm2-ggml-q4_0.bin | q4_0 | 4 | 3.5 GB  |
-| chatglm2-ggml-q4_1.bin | q4_1 | 4 | 3.9 GB  |
-| chatglm2-ggml-q5_0.bin | q5_0 | 5 | 4.3 GB  |
-| chatglm2-ggml-q5_1.bin | q5_1 | 5 | 4.7 GB  |
-| chatglm2-ggml-q8_0.bin | q8_0 | 8 | 6.6 GB  |
+* 其他chatglm2模型请到 [huggingface下载](https://huggingface.co/Xorbits/chatglm2-6B-GGML) 。如果使用更高精度的模型，下载后需要修改 [api.py](./python//api.py) 和 [webui.py](./python/webui.py) 里对应的文件名。
 
+### 启动
 
-
-# 启动
-
-## Webui
+#### WebUI模式
 
 * win 系统 双击 webui-win.bat 
 
 * mac 打开终端 cd xxx/Local-LLM ，然后 ./webui-mac.sh 回车
 
-## API模式
+### API模式
+支持chatglm2和llama-2
 
-* win 系统 双击 api-win.bat 
+##### window系统:
+双击 api-win.bat 直接运行
 
-* mac 打开终端 cd xxx/Local-LLM ，然后 ./api-mac.sh 回车
+##### mac系统:
+* 打开终端 输入：
+```
+cd xxx/Local-LLM
+```
+* 然后 输入:
+```
+./api-mac.sh
+```
 
-* 运行成功后把 http://127.0.0.1:8000 填写到 ChatGPT设置里的 API URL 地址里
+
+##### 客户端填写：
+LocalLLM 设置里的 API URL 地址 填写 http://127.0.0.1:8000 
+
+##### 启动 Llama-2
+只需要传参llama即可启动，例如：
+```
+./api-win.bat llama
+```
 
 
-# 问题
+##### 可能会碰到的问题
 
-mac提示没有app.sh权限
-输入：chmod 777 app.sh
+mac提示没有app.sh权限，输入：
+```
+chmod 777 app.sh
+```
 
-mac pip安装提示：
+mac pip 安装提示：
+```
 ERROR: chatglm_cpp-0.2.5-cp38-cp38-macosx_11_1_x86_64.whl is not a supported wheel on this platform.
+```
 
-原因：
-pip认为big sur是macOS_10_9。我将所有捆绑的车轮文件重命名为macos_10_9然后它就工作了。
+原因：pip认为big sur是macOS_10_9。将所有捆绑的whl文件重命名为macos_10_9然后它就可以了
 
 mac 查看线程数：
+```
 sysctl hw.logicalcpu
-
 hw.logicalcpu: 8
+```
 
 
-# 感谢开源项目：
+
+##### 感谢开源项目：
 
 [chatglm.cpp](https://github.com/li-plus/chatglm.cpp)
-
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
 [Xorbits](https://huggingface.co/Xorbits/chatglm2-6B-GGML)

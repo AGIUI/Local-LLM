@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+printf "模型：$1"
+export COMMANDLINE_ARGS="--$1"
+
 # python3 executable
 if [[ -z "${python_cmd}" ]]
 then

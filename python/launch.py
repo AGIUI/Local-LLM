@@ -133,8 +133,8 @@ def prepare_environment():
         #自行编译
         run_pip(f"install chatglm_cpp/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
     
-    # if not is_installed("llama_cpp"):
-    #     run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
+    if not is_installed("llama_cpp"):
+        run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
 
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")
@@ -160,10 +160,7 @@ def prepare_environment():
 
     print(platform.system(),platform.python_version().startswith("3.10"))
     
-    DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
     
-    if not os.path.exists(DEFAULT_MODEL_PATH):
-        print('模型文件不存在：',DEFAULT_MODEL_PATH)
 
     # 安装torch GPU版本
     # if args.reinstall_torch or not is_installed("torch") or not is_installed("torchvision"):
@@ -182,13 +179,32 @@ def prepare_environment():
 
 
 def start():
-    if commandline_args=='--web':
-        import webui
-        webui.start()
+    # print(commandline_args.lower()=='--llama')
+    if 'llama' in commandline_args.lower():
+        # 使用Llama-2 的api模式
+        print("使用Llama-2 的api模式")
+        DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/Chinese-Llama-2-7b-ggml-q4.bin"
+        if not os.path.exists(DEFAULT_MODEL_PATH):
+            print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
+        
+        os.system(f'"{python}" -m llama_cpp.server --model ./models/Chinese-Llama-2-7b-ggml-q4.bin')
+
     else:
-        print(f"Launching API server")
-        import api
-        api.start()
+
+        DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
+    
+        if not os.path.exists(DEFAULT_MODEL_PATH):
+            print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
+
+        if commandline_args=='--web':
+            print("chatglm2 的webui模式")
+            import webui
+            webui.start()
+        else:
+            print("chatglm2 的api模式")
+            #print(f"Launching API server")
+            import api
+            api.start()
 
 
 if __name__ == "__main__":

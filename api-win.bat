@@ -2,7 +2,8 @@
 
 if not defined PYTHON (set PYTHON=python)
 if not defined VENV_DIR (set "VENV_DIR=%~dp0%venv")
-
+echo 模型：%1
+set COMMANDLINE_ARGS=--%1
 
 set ERROR_REPORTING=FALSE
 
