@@ -16,7 +16,7 @@
 - 放到目录 Local-LLM/models/xxx.bin
 
 
-- 下载： [百度网盘链接](https://pan.baidu.com/s/1YVqaf2uXL73fTTzpab8tIQ) 提取码：como 
+- 下载： [百度网盘链接](https://pan.baidu.com/s/15QrZnZqDIhuSFSq_JN0kiQ) 提取码：como 
 
 
 * 其他chatglm2模型请到 [huggingface下载](https://huggingface.co/Xorbits/chatglm2-6B-GGML) 。如果使用更高精度的模型，下载后需要修改 [api.py](./python//api.py) 和 [webui.py](./python/webui.py) 里对应的文件名。
