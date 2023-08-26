@@ -1,6 +1,10 @@
 # Local-LLM 本地大模型
 人人可拥有的本地模型服务，目前支持chatglm2和Llama-2。
 
+### 下载
+[下载](https://github.com/AGIUI/Local-LLM/archive/refs/heads/main.zip)
+解压后，放到本地电脑的任意目录里 xxxx/Local-LLM
+
 ### 安装python
 
 * 推荐使用python3.10
