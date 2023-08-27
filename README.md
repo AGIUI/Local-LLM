@@ -78,8 +78,16 @@ hw.logicalcpu: 8
 
 
 
-##### 感谢开源项目：
+#### 感谢以下开源项目： 
+
 
 [chatglm.cpp](https://github.com/li-plus/chatglm.cpp)
+
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
+
+[whisper-cpp-python](https://github.com/carloscdias/whisper-cpp-python)
+
+[whisper.cpp MODEL](https://huggingface.co/ggerganov/whisper.cpp)
+
 [Xorbits](https://huggingface.co/Xorbits/chatglm2-6B-GGML)
+

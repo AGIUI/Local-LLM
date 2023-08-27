@@ -133,8 +133,14 @@ def prepare_environment():
         #自行编译
         run_pip(f"install chatglm_cpp/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
     
-    if not is_installed("llama_cpp"):
-        run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
+    if 'llama' in commandline_args.lower():
+        if not is_installed("llama_cpp"):
+            run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
+    
+    if 'whisper' in commandline_args.lower():
+        if not is_installed("whisper_cpp_python"):
+            run_pip(f"install git+https://github.com/shadowcz007/whisper-cpp-python.git", "whisper_cpp_python")
+            run_pip(f"install whisper-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "whisper_cpp_python")
 
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")
