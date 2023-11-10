@@ -127,11 +127,11 @@ def prepare_environment():
     if not is_installed('chatglm_cpp'):
         #安装编译好的安装包
         # if sys.platform.startswith("win"):
-        #     run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.4-cp310-cp310-win_amd64.whl", "chatglm_cpp")
+        #     run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.10-cp310-cp310-win_amd64.whl", "chatglm_cpp")
         # elif sys.platform.startswith("darwin"):
-        #     run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.4-cp310-cp310-macosx_10_9_x86_64.whl", "chatglm_cpp")
+        #     run_pip(f"install chatglm_cpp/chatglm_cpp-0.2.10-cp310-cp310-macosx_10_9_x86_64.whl", "chatglm_cpp")
         #自行编译
-        run_pip(f"install chatglm_cpp/chatglm-cpp-0.2.4.tar.gz", "chatglm_cpp")
+        run_pip(f"install chatglm_cpp/chatglm-cpp-0.2.10.tar.gz", "chatglm_cpp")
     
     if not is_installed("llama_cpp"):
         run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
