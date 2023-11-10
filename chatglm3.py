@@ -15,7 +15,8 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm3-ggml-q4_0.bin"
+current_path = os.getcwd()
+DEFAULT_MODEL_PATH =os.path.join(current_path, "models/chatglm3-ggml-q4_0.bin")
 if not os.path.exists(DEFAULT_MODEL_PATH):
     print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
 

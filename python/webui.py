@@ -2,7 +2,7 @@ from pathlib import Path
 import gradio as gr
 import chatglm_cpp
 
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm3-ggml-q4_0.bin"
 print('####模型地址',DEFAULT_MODEL_PATH)
 
 num_threads=8

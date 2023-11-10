@@ -76,6 +76,12 @@ sysctl hw.logicalcpu
 hw.logicalcpu: 8
 ```
 
+#### win打包
+venv/Scripts/python -s -m pip install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pyinstaller chatglm3.py
+
+把models拷贝到 dist/chatglm3目录下，运行 chatglm3.exe 启动
 
 
 ##### 感谢开源项目：

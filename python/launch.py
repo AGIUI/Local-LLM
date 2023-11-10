@@ -191,17 +191,17 @@ def start():
 
     else:
 
-        DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm2-ggml-q4_0.bin"
+        DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models/chatglm3-ggml-q4_0.bin"
     
         if not os.path.exists(DEFAULT_MODEL_PATH):
             print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
 
         if commandline_args=='--web':
-            print("chatglm2 的webui模式")
+            print("chatglm3 的webui模式")
             import webui
             webui.start()
         else:
-            print("chatglm2 的api模式")
+            print("chatglm3 的api模式")
             #print(f"Launching API server")
             import api
             api.start()
