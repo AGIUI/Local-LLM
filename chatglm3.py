@@ -7,7 +7,7 @@ from threading import Lock
 from typing import List
 
 import chatglm_cpp
-import uvicorn,os
+import os
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -26,9 +26,9 @@ print("####线程数",num_threads)
 
 class Settings(BaseSettings):
     server_name: str = "ChatGLM CPP API Server"
-    model: str = str(DEFAULT_MODEL_PATH)  # Path to chatglm model in ggml format
+    # model: str = str(DEFAULT_MODEL_PATH)  # Path to chatglm model in ggml format
     host: str = "127.0.0.1"
-    port: int = 8000
+    
 
 
 settings = Settings()
@@ -67,7 +67,7 @@ def run_with_lock(method):
 @app.on_event("startup")
 async def startup_event():
     global pipeline
-    pipeline = chatglm_cpp.Pipeline(settings.model)
+    pipeline = chatglm_cpp.Pipeline(DEFAULT_MODEL_PATH)
     res=pipeline.chat(["hi"])
     print(res)
     logging.info("End Loading chatglm model")
@@ -232,7 +232,21 @@ async def chat_completions(body: ChatCompletionBody, request: Request):
     return await process_generate(history, True, body, request)
 
 def start():
-    uvicorn.run(app, host=settings.host, port=settings.port)
+    import sys
+    import uvicorn
+    port: int = 8000
+    global DEFAULT_MODEL_PATH
+
+    # Parse command line arguments
+    for arg in sys.argv[1:]:
+        if arg.startswith("port="):
+            port = int(arg.split("=")[1])
+        if arg.startswith("model="):
+            DEFAULT_MODEL_PATH=arg.split("=")[1]
+            if os.path.exists(DEFAULT_MODEL_PATH):
+                print('##### 模型文件存在：',DEFAULT_MODEL_PATH)
+
+    uvicorn.run(app, host=settings.host, port=port)
     
 
 if __name__ == "__main__":
