@@ -83,6 +83,14 @@ pyinstaller chatglm3.py
 
 把models拷贝到 dist/chatglm3目录下，运行 chatglm3.exe 启动
 
+## mac
+source venv/bin/activate
+pip install chatglm_cpp-0.2.10-cp310-cp310-macosx_10_9_x86_64.whl
+
+pyinstaller -F chatglm3.py --clean
+
+把models拷贝到 dist/chatglm3目录下，运行 chatglm3 启动
+
 
 ##### 感谢开源项目：
 

@@ -7,7 +7,7 @@ from threading import Lock
 from typing import List
 
 import chatglm_cpp
-import os
+import os,sys
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -15,8 +15,18 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 
+
+# 获取可执行文件的路径
+executable_path = sys.argv[0]
+# 获取main.py文件所在的目录路径
+main_dir = os.path.dirname(os.path.abspath(executable_path))
+
+# 获取相对路径
+relative_path = os.path.join(main_dir, "models/chatglm3-ggml-q4_0.bin")
+
 current_path = os.getcwd()
-DEFAULT_MODEL_PATH =os.path.join(current_path, "models/chatglm3-ggml-q4_0.bin")
+DEFAULT_MODEL_PATH =relative_path
+# os.path.join(current_path, "models/chatglm3-ggml-q4_0.bin")
 if not os.path.exists(DEFAULT_MODEL_PATH):
     print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
 
