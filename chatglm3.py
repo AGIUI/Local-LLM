@@ -14,6 +14,23 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
+import socket
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('localhost', port))
+            return False
+        except socket.error:
+            return True
+
+def find_available_port(start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        if not is_port_in_use(port):
+            return port
+    raise Exception("No available ports in the range")
+
+
 
 
 # 获取可执行文件的路径
@@ -30,6 +47,8 @@ DEFAULT_MODEL_PATH =relative_path
 if not os.path.exists(DEFAULT_MODEL_PATH):
     print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
 
+MAX_LENGTH=2048
+MAX_CONTEXT=512
 
 num_threads=8
 print("####线程数",num_threads)
@@ -86,10 +105,12 @@ async def startup_event():
 
 @run_with_lock
 async def stream_chat(request, history, body):
+    print(body.max_tokens,MAX_LENGTH,body.max_context_length,MAX_CONTEXT,body.top_k,body.top_p,body.temperature)
+
     for piece in pipeline.stream_chat(
         history,
-        max_length=body.max_tokens,
-        max_context_length=body.max_context_length,
+        max_length=(body.max_tokens if body.max_tokens else MAX_LENGTH),
+        max_context_length=(body.max_context_length if body.max_context_length else MAX_CONTEXT) ,
         do_sample=body.temperature > 0,
         top_k=body.top_k,
         top_p=body.top_p,
@@ -108,7 +129,7 @@ async def process_generate(history, chat_model, body, request):
     if len(history) % 2 == 0:
         history = ["hi"] + history
 
-    print('history',history)
+    print('history',len(''.join(history)),history)
 
     async def generate():
         response = ""
@@ -161,8 +182,8 @@ def format_message(response, delta, chunk=False, chat_model=False, model_name="c
 
 
 class ModelConfigBody(BaseModel):
-    max_tokens: int = Field(default=2048, gt=0, le=102400)
-    max_context_length: int = Field(default=512, gt=0, le=102400)
+    max_tokens: int = Field(default=None, gt=0, le=102400)
+    max_context_length: int = Field(default=None, gt=0, le=102400)
     temperature: float = Field(default=0.95, ge=0, le=2)
     top_p: float = Field(default=0.7, ge=0, le=1)
     top_k: float = Field(default=0, ge=0, le=1)
@@ -170,8 +191,8 @@ class ModelConfigBody(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "max_tokens": 2048,
-                "max_context_length": 512,
+                # "max_tokens": 2048,
+                # "max_context_length": 2048,
                 "temperature": 0.95,
                 "top_p": 0.7,
                 "top_k": 0,
@@ -195,8 +216,8 @@ class ChatCompletionBody(ModelConfigBody):
                 "messages": [{"role": "user", "content": "hello"}],
                 "model": "chatglm3-6b",
                 "stream": False,
-                "max_tokens": 2048,
-                "max_context_length": 512,
+                # "max_tokens": 2048,
+                # "max_context_length": 512,
                 "temperature": 0.95,
                 "top_p": 0.7,
                 "top_k": 0,
@@ -216,14 +237,17 @@ class CompletionBody(ModelConfigBody):
                 + "with delicate descriptions and grand depictions of interstellar civilization wars.\nChapter 1.\n",
                 "model": "chatglm3-6b",
                 "stream": False,
-                "max_tokens": 2048,
-                "max_context_length": 512,
+                # "max_tokens": 2048,
+                # "max_context_length": 512,
                 "temperature": 0.95,
                 "top_p": 0.7,
                 "top_k": 0,
             }
         }
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to ChatGLM3 API"}
 
 @app.post("/v1/completions")
 @app.post("/completions")
@@ -246,6 +270,8 @@ def start():
     import uvicorn
     port: int = 8000
     global DEFAULT_MODEL_PATH
+    global MAX_LENGTH
+    global MAX_CONTEXT
 
     # Parse command line arguments
     for arg in sys.argv[1:]:
@@ -255,8 +281,20 @@ def start():
             DEFAULT_MODEL_PATH=arg.split("=")[1]
             if os.path.exists(DEFAULT_MODEL_PATH):
                 print('##### 模型文件存在：',DEFAULT_MODEL_PATH)
+        if arg.startswith("max_tokens="): 
+            MAX_LENGTH=int(arg.split("=")[1])
+            print('##### MAX_LENGTH',MAX_LENGTH) #MAX_LENGTH=2048
 
-    uvicorn.run(app, host=settings.host, port=port)
+        if arg.startswith("max_context_length="):
+            MAX_CONTEXT=int(arg.split("=")[1])
+            print('##### MAX_CONTEXT',MAX_CONTEXT) #MAX_CONTEXT=512
+ 
+    # 示例用法
+    end_port = 9000
+    available_port = find_available_port(port, end_port)
+    print("Available port:", available_port)            
+
+    uvicorn.run(app, host=settings.host, port=available_port)
     
 
 if __name__ == "__main__":
