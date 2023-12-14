@@ -150,18 +150,18 @@ def format_message(response, delta, chunk=False, chat_model=False, model_name="c
 
 
 class ModelConfigBody(BaseModel):
-    max_tokens: int = Field(default=2048, gt=0, le=102400)
-    max_context_length: int = Field(default=512, gt=0, le=102400)
-    temperature: float = Field(default=0.95, ge=0, le=2)
+    max_tokens: int = Field(default=7168, gt=0, le=8192)
+    max_context_length: int = Field(default=1024, gt=0, le=8192)
+    temperature: float = Field(default=0.7, ge=0, le=2)
     top_p: float = Field(default=0.7, ge=0, le=1)
     top_k: float = Field(default=0, ge=0, le=1)
 
     class Config:
         json_schema_extra = {
             "example": {
-                "max_tokens": 2048,
-                "max_context_length": 512,
-                "temperature": 0.95,
+                "max_tokens": 7168,
+                "max_context_length": 1024,
+                "temperature": 0.7,
                 "top_p": 0.7,
                 "top_k": 0,
             }
@@ -184,9 +184,9 @@ class ChatCompletionBody(ModelConfigBody):
                 "messages": [{"role": "user", "content": "hello"}],
                 "model": "chatglm3-6b",
                 "stream": False,
-                "max_tokens": 2048,
-                "max_context_length": 512,
-                "temperature": 0.95,
+                "max_tokens": 7168,
+                "max_context_length": 1024,
+                "temperature": 0.7,
                 "top_p": 0.7,
                 "top_k": 0,
             }
@@ -205,9 +205,9 @@ class CompletionBody(ModelConfigBody):
                 + "with delicate descriptions and grand depictions of interstellar civilization wars.\nChapter 1.\n",
                 "model": "chatglm3-6b",
                 "stream": False,
-                "max_tokens": 2048,
-                "max_context_length": 512,
-                "temperature": 0.95,
+                "max_tokens": 7168,
+                "max_context_length": 1024,
+                "temperature": 0.7,
                 "top_p": 0.7,
                 "top_k": 0,
             }
