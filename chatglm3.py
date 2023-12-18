@@ -78,6 +78,7 @@ class ChatCompletionRequest(BaseModel):
     top_p: float = Field(default=0.7, ge=0.0, le=1.0)
     stream: bool = False
     max_tokens: int = Field(default=2048, ge=0)
+    max_context_length: int = Field(default=2048, ge=0)
 
     model_config = {
         "json_schema_extra": {"examples": [{"model": "default-model", "messages": [{"role": "user", "content": "你好"}]}]}
@@ -228,18 +229,17 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
     if body.stream:
         generator = stream_chat_event_publisher(messages, body)
         return EventSourceResponse(generator)
-
-    max_context_length =body.max_context_length | 2048
+    
     output = pipeline.chat(
         messages=messages,
         max_length=body.max_tokens,
-        max_context_length=max_context_length,
+        max_context_length=body.max_context_length,
         do_sample=body.temperature > 0,
         top_p=body.top_p,
         temperature=body.temperature,
     )
     print(f'prompt: "{messages[-1].content}", sync response: "{output.content}"')
-    prompt_tokens = len(pipeline.tokenizer.encode_messages(messages, max_context_length))
+    prompt_tokens = len(pipeline.tokenizer.encode_messages(messages, body.max_context_length))
     completion_tokens = len(pipeline.tokenizer.encode(output.content, body.max_tokens))
 
     return ChatCompletionResponse(
