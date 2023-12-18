@@ -83,6 +83,8 @@ pyinstaller -F chatglm3.py --clean
 
 把models拷贝到 dist/目录下，运行 chatglm3.exe 启动
 
+> chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
+
 ## mac
 source venv/bin/activate
 pip install chatglm_cpp-0.3.0-cp310-cp310-macosx_10_9_x86_64.whl

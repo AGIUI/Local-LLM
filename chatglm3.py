@@ -263,6 +263,7 @@ def start():
     global MAX_LENGTH
     global MAX_CONTEXT
 
+    # chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
     # Parse command line arguments
     for arg in sys.argv[1:]:
         if arg.startswith("port="):
