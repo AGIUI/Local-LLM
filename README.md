@@ -85,7 +85,7 @@ pyinstaller -F chatglm3.py --clean
 
 ## mac
 source venv/bin/activate
-pip install chatglm_cpp-0.2.10-cp310-cp310-macosx_10_9_x86_64.whl
+pip install chatglm_cpp-0.3.0-cp310-cp310-macosx_10_9_x86_64.whl
 
 pyinstaller -F chatglm3.py --clean
 
