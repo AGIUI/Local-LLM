@@ -167,6 +167,19 @@ def stream_chat(messages, body):
 
 
 
+async def stream_chat_event_publisher(history, body):
+    output = ""
+    try:
+        async with lock:
+            for chunk in stream_chat(history, body):
+                await asyncio.sleep(0)  # yield control back to event loop for cancellation check
+                output += chunk.choices[0].delta.content or ""
+                yield chunk.model_dump_json(exclude_unset=True)
+        logging.info(f'prompt: "{history[-1]}", stream response: "{output}"')
+    except asyncio.CancelledError as e:
+        logging.info(f'prompt: "{history[-1]}", stream response (partial): "{output}"')
+        raise e
+
 
 @app.post("/v1/chat/completions")
 async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionResponse:
