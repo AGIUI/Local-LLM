@@ -49,7 +49,7 @@ CHAT_SYSTEM_PROMPT = "You are ChatGLM3, a large language model trained by Zhipu.
 if not os.path.exists(DEFAULT_MODEL_PATH):
     print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
 
-MAX_LENGTH=2048
+MAX_LENGTH=4096
 MAX_CONTEXT=512
 
 class Settings(BaseSettings):
@@ -77,8 +77,8 @@ class ChatCompletionRequest(BaseModel):
     temperature: float = Field(default=0.95, ge=0.0, le=2.0)
     top_p: float = Field(default=0.7, ge=0.0, le=1.0)
     stream: bool = False
-    max_tokens: int = Field(default=2048, ge=0)
-    max_context_length: int = Field(default=2048, ge=0)
+    max_tokens: int = Field(default=4096, ge=0)
+    max_context_length: int = Field(default=4096, ge=0)
 
     model_config = {
         "json_schema_extra": {"examples": [{"model": "default-model", "messages": [{"role": "user", "content": "你好"}]}]}
@@ -161,8 +161,8 @@ async def startup_event():
     print("--------")
     print(messages_with_system)
     print("--------")
-    res=pipeline.chat(messages_with_system,max_length=2048,
-                max_context_length=2048,
+    res=pipeline.chat(messages_with_system,max_length=4096,
+                max_context_length=4096,
                 do_sample=0.8 > 0,
                 top_k=0,
                 top_p=0.8,
