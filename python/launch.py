@@ -134,7 +134,7 @@ def prepare_environment():
         # run_pip(f"install chatglm_cpp/chatglm-cpp-0.3.0.tar.gz", "chatglm_cpp")
     
     if not is_installed("llama_cpp"):
-        run_pip(f"install llama-cpp-python[server] -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
+        run_pip(f"install llama-cpp-python -i https://pypi.tuna.tsinghua.edu.cn/simple", "llama_cpp")
 
     if not is_installed('uvicorn'):
         run_pip(f"install uvicorn -i https://pypi.tuna.tsinghua.edu.cn/simple", "uvicorn")

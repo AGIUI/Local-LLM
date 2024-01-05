@@ -1,6 +1,4 @@
 # Adapted from https://github.com/lloydzhou/rwkv.cpp/blob/master/rwkv/api.py
-
-
 import asyncio
 import os,sys
 import logging
@@ -15,6 +13,9 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 import socket
+
+from embeddings import DefaultEmbeddingModel
+
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -70,6 +71,14 @@ class ChatMessage(BaseModel):
 class DeltaMessage(BaseModel):
     role: Optional[Literal["system", "user", "assistant"]] = None
     content: Optional[str] = None
+
+
+class EmbeddingRequest(BaseModel):
+    texts: List[str]
+
+class EmbeddingResponse(BaseModel):
+    texts: List[str]
+    embeddings:List[List[float]]
 
 class ChatCompletionRequest(BaseModel):
     model: str = "ChatGLM3"
@@ -142,12 +151,18 @@ app.add_middleware(
 pipeline = None
 lock = asyncio.Lock()
 
+embbeding_model=None
 
 
 @app.on_event("startup")
 async def startup_event():
     global pipeline
     pipeline = chatglm_cpp.Pipeline(DEFAULT_MODEL_PATH)
+
+
+def init_chatglm3():
+    global pipeline
+
     messages =[]
     messages.append({
         "role":"user", "content":"hi"
@@ -174,7 +189,6 @@ async def startup_event():
     print(res)
     print("--------")
     print("End Loading chatglm model")
-
 
 
 def stream_chat(messages, body):
@@ -251,8 +265,27 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
 
 @app.get("/")
 async def root():
+    init_chatglm3()
     return {"message": "Welcome to ChatGLM3 API"}
 
+
+@app.get("/embedding")
+async def init_embedding():
+    global embbeding_model
+    embbeding_model = DefaultEmbeddingModel()
+    return {"message": "Welcome to Embedding API"}
+
+@app.post("/embedding")
+@app.post("/v1/embedding")
+async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
+    global embbeding_model
+    texts=body.texts
+    embeddings = embbeding_model(texts)
+    embeddings=embeddings.tolist()
+    return {
+        "texts":texts,
+        "embeddings":embeddings
+    }
 
 
 def start():

@@ -75,6 +75,8 @@ mac 查看线程数：
 sysctl hw.logicalcpu
 hw.logicalcpu: 8
 ```
+#### embedding
+用llama_cpp实现
 
 #### win打包
 venv/Scripts/python -s -m pip install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -86,7 +88,7 @@ pyinstaller -F chatglm3.py --clean
 > chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
 
 ## mac
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 pip install fastapi
 pip install pydantic_settings
