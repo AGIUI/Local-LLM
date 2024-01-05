@@ -3,7 +3,7 @@ import onnxruntime as ort
 import numpy as np
 from typing import List
 
-MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+# MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 
 def normalize(v):
     norm = np.linalg.norm(v, axis=1)
@@ -11,11 +11,15 @@ def normalize(v):
     return v / norm[:, np.newaxis]
 
 class DefaultEmbeddingModel:
-    def __init__(self):
-        self.tokenizer = Tokenizer.from_file("models/all-MiniLM-L6-v2/tokenizer.json")
+    def __init__(self,tokenizer_path: str, model_path: str):
+
+        self.tokenizer_path = tokenizer_path
+        self.model_path = model_path
+
+        self.tokenizer = Tokenizer.from_file(self.tokenizer_path)
         self.tokenizer.enable_truncation(max_length=256)
         self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]", length=256)
-        self.model = ort.InferenceSession("models/all-MiniLM-L6-v2/onnx/model_quantized.onnx")
+        self.model = ort.InferenceSession(self.model_path)
 
     def __call__(self, documents: List[str], batch_size: int = 32):
         all_embeddings = []
@@ -37,8 +41,10 @@ class DefaultEmbeddingModel:
             all_embeddings.append(embeddings)
         return np.concatenate(all_embeddings)
 
+# tokenizer_path="models/all-MiniLM-L6-v2/tokenizer.json"
+# model_path="models/all-MiniLM-L6-v2/onnx/model_quantized.onnx"
 
-# model = DefaultEmbeddingModel()
+# model = DefaultEmbeddingModel(tokenizer_path,model_path)
 # texts = ["This is the first text", "This is the second text"]
 # embeddings = model(texts)
 # print(embeddings.tolist())

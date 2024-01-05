@@ -53,6 +53,12 @@ if not os.path.exists(DEFAULT_MODEL_PATH):
 MAX_LENGTH=4096
 MAX_CONTEXT=512
 
+
+
+embbeding_tokenizer_path=os.path.join(main_dir, "models/all-MiniLM-L6-v2/tokenizer.json")
+embbeding_model_path=os.path.join(main_dir, "models/all-MiniLM-L6-v2/onnx/model_quantized.onnx")
+
+
 class Settings(BaseSettings):
     # model: str = "chatglm-ggml.bin"
     num_threads: int = 8
@@ -272,7 +278,7 @@ async def root():
 @app.get("/embedding")
 async def init_embedding():
     global embbeding_model
-    embbeding_model = DefaultEmbeddingModel()
+    embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
     return {"message": "Welcome to Embedding API"}
 
 @app.post("/embedding")
@@ -295,6 +301,8 @@ def start():
     global DEFAULT_MODEL_PATH
     global MAX_LENGTH
     global MAX_CONTEXT
+    global embbeding_tokenizer_path
+    global embbeding_model_path
 
     # chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
     # Parse command line arguments
@@ -312,6 +320,15 @@ def start():
         if arg.startswith("max_context_length="):
             MAX_CONTEXT=int(arg.split("=")[1])
             print('##### MAX_CONTEXT',MAX_CONTEXT) #MAX_CONTEXT=512
+
+        if arg.startswith("embbeding_tokenizer_path="):
+            embbeding_tokenizer_path=int(arg.split("=")[1])
+            print('##### embbeding_tokenizer_path',embbeding_tokenizer_path)
+
+        if arg.startswith("embbeding_model_path="):
+            embbeding_model_path=int(arg.split("=")[1])
+            print('##### embbeding_model_path',embbeding_model_path)
+            
  
     # 示例用法
     end_port = 9000
