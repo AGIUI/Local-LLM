@@ -285,9 +285,14 @@ async def init_embedding():
 @app.post("/v1/embedding")
 async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
     global embbeding_model
+    
+    if embbeding_model==None:
+        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+
     texts=body.texts
     embeddings = embbeding_model(texts)
     embeddings=embeddings.tolist()
+    print('#embeddings done',texts)
     return {
         "texts":texts,
         "embeddings":embeddings
@@ -322,11 +327,11 @@ def start():
             print('##### MAX_CONTEXT',MAX_CONTEXT) #MAX_CONTEXT=512
 
         if arg.startswith("embbeding_tokenizer_path="):
-            embbeding_tokenizer_path=int(arg.split("=")[1])
+            embbeding_tokenizer_path= arg.split("=")[1] 
             print('##### embbeding_tokenizer_path',embbeding_tokenizer_path)
 
         if arg.startswith("embbeding_model_path="):
-            embbeding_model_path=int(arg.split("=")[1])
+            embbeding_model_path= arg.split("=")[1] 
             print('##### embbeding_model_path',embbeding_model_path)
             
  
