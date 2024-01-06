@@ -39,7 +39,9 @@ class DefaultEmbeddingModel:
             embeddings = np.sum(last_hidden_state * input_mask_expanded, 1) / np.clip(input_mask_expanded.sum(1), a_min=1e-9, a_max=None)
             embeddings = normalize(embeddings).astype(np.float32)
             all_embeddings.append(embeddings)
+        
         return np.concatenate(all_embeddings)
+         
 
 # tokenizer_path="models/all-MiniLM-L6-v2/tokenizer.json"
 # model_path="models/all-MiniLM-L6-v2/onnx/model_quantized.onnx"
@@ -47,7 +49,7 @@ class DefaultEmbeddingModel:
 # model = DefaultEmbeddingModel(tokenizer_path,model_path)
 # texts = ["This is the first text", "This is the second text"]
 # embeddings = model(texts)
-# print(embeddings.tolist())
+# print(len(embeddings.tolist()[0]))
 
 
 

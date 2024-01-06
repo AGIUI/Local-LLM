@@ -1,10 +1,104 @@
 import lancedb
+import pyarrow as pa
+import json
 
-uri = "data/sample-lancedb"
-db = lancedb.connect(uri)
-table = db.create_table("my_table",
-                         data=[{"vector": [3.1, 4.1], "item": "foo", "price": 10.0},
-                               {"vector": [5.9, 26.5], "item": "bar", "price": 20.0}])
-result = table.search([100, 100]).limit(2).to_pandas()
+class LanceDBAssistant:
+    def __init__(self, dirpath, filename,n=384):
+        self.dirpath = dirpath
+        self.filename = filename
+        self.db = None
+        self.create_schema(n)
 
-print(result)
+    def create_schema(self,n=384):
+        self.schema = pa.schema([
+            pa.field("vector", pa.list_(pa.float32(), n)),
+            pa.field("item", pa.string()),
+            pa.field("id", pa.string()),
+        ])
+
+    def connect(self):
+        if self.db is None:
+            self.db = lancedb.connect(self.dirpath)
+
+    def create(self):
+        self.connect()
+
+        table = self.db.create_table(self.filename, schema=self.schema, mode="overwrite")
+        return table
+    
+    def open(self):
+        table=None
+        try:
+            ts=self.db.table_names()
+            if self.filename in ts:
+                table = self.db.open_table(self.filename)
+        except:
+            print('Creating a new table')
+        return table
+
+    def add(self, data):
+        self.connect()
+        table = self.open()
+        
+        if table is None:
+            table = self.create()  # Assuming data is a pyarrow.Table
+
+        table.add(data=data)
+
+        return self.db[self.filename].head()
+
+    def search(self, vector, limit=5):
+        self.connect()
+        table = self.open()
+        res=[]
+        if table:
+            res = table.search(vector).select(['id','item']).limit(limit).to_list()
+            res=[{
+                'id':r['id'],
+                'item':json.loads(r['item']),
+                '_distance':r['_distance']
+            } for r in res]
+            return res
+
+    def list_tables(self):
+        self.connect()
+        return self.db.table_names()
+
+    def delete_table(self,filename):
+        self.connect()
+        self.db.drop_table(filename, ignore_missing=True)
+
+    def get_by_id(self,id):
+        self.connect()
+        table = self.open()
+        if table:
+            items=table.search().select(['id']).to_list()
+            for item in items:
+                if item['id']==id:
+                    return item
+        return
+
+# dirpath = "tmp/sample-lancedb"
+# filename = "my_table2"
+
+# assistant = LanceDBAssistant(dirpath, filename)
+
+# # Create a new table
+# assistant.create_schema()
+
+# table = assistant.create(schema)
+
+# # Add new data
+# data =  [{"vector": [1.3, 1.4], "item": "fizz" },
+#       {"vector": [9.5, 56.2], "item": "buzz" }]
+# assistant.add(data)
+
+# # Search by vector
+# vector = [1.3, 1.4]  # Your search vector
+# results = assistant.search(vector)
+
+# # List all tables
+# tables = assistant.list_tables()
+# print(results)
+# Delete the table
+# assistant.delete_table()

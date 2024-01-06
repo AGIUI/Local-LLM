@@ -1,6 +1,6 @@
 # Adapted from https://github.com/lloydzhou/rwkv.cpp/blob/master/rwkv/api.py
 import asyncio
-import os,sys
+import os,sys,json
 import logging
 import time
 from typing import List, Literal, Optional, Union
@@ -13,9 +13,14 @@ from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
 
 import socket
+import urllib.parse
 
+# encoded_str = 'Hello%20World%21'
+# decoded_str = urllib.parse.unquote(encoded_str)
+
+# print(decoded_str)
 from embeddings import DefaultEmbeddingModel
-
+from vectordb import LanceDBAssistant
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -40,7 +45,7 @@ executable_path = sys.argv[0]
 main_dir = os.path.dirname(os.path.abspath(executable_path))
 
 # 获取相对路径
-relative_path = os.path.join(main_dir, "models/chatglm3-ggml-q4_0.bin")
+relative_path = os.path.join(main_dir, "models","chatglm3-ggml-q4_0.bin")
 
 current_path = os.getcwd()
 DEFAULT_MODEL_PATH =relative_path
@@ -55,8 +60,8 @@ MAX_CONTEXT=512
 
 
 
-embbeding_tokenizer_path=os.path.join(main_dir, "models/all-MiniLM-L6-v2/tokenizer.json")
-embbeding_model_path=os.path.join(main_dir, "models/all-MiniLM-L6-v2/onnx/model_quantized.onnx")
+embbeding_tokenizer_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","tokenizer.json")
+embbeding_model_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","onnx","model_quantized.onnx")
 
 
 class Settings(BaseSettings):
@@ -81,10 +86,24 @@ class DeltaMessage(BaseModel):
 
 class EmbeddingRequest(BaseModel):
     texts: List[str]
+    titles: List[str]
+    ids: List[str]
+    dirpath:str
+    filename:str
+    limit:int= Field(default=5, ge=0)
+
+class VectorRequest(BaseModel):
+    dirpath:str
+    filename:str
+
+class VectorResponse(BaseModel):
+    tables: List[str]
+
 
 class EmbeddingResponse(BaseModel):
     texts: List[str]
     embeddings:List[List[float]]
+    result:List[dict]
 
 class ChatCompletionRequest(BaseModel):
     model: str = "ChatGLM3"
@@ -158,7 +177,7 @@ pipeline = None
 lock = asyncio.Lock()
 
 embbeding_model=None
-
+vector=None
 
 @app.on_event("startup")
 async def startup_event():
@@ -272,7 +291,10 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
 @app.get("/")
 async def root():
     init_chatglm3()
-    return {"message": "Welcome to ChatGLM3 API"}
+    return {"message": "Welcome to LocalAI API",
+            "models":[
+                embbeding_tokenizer_path,embbeding_model_path,DEFAULT_MODEL_PATH
+            ]}
 
 
 @app.get("/embedding")
@@ -295,8 +317,136 @@ async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
     print('#embeddings done',texts)
     return {
         "texts":texts,
-        "embeddings":embeddings
+        "embeddings":embeddings,
+        "result":[]
     }
+
+
+@app.post("/embedding/add")
+@app.post("/v1/embedding/add")
+async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
+    global embbeding_model
+    global vector
+
+    dirpath=urllib.parse.unquote(body.dirpath)
+    filename=urllib.parse.unquote(body.filename)
+    if vector:
+        if vector.dirpath!= dirpath or vector.filename!= filename:
+            vector=None
+    
+    if vector==None:
+        vector = LanceDBAssistant(dirpath,filename)
+
+    print('#vector',vector.dirpath,vector.filename)
+
+    if embbeding_model==None:
+        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+
+    titles=body.titles
+    ids=body.ids
+    texts=body.texts
+    
+    index_to_db=[]
+    new_texts=[]
+    for index in range(len(ids)):
+        item=vector.get_by_id(ids[index])
+        print('##item',item)
+        if not item:
+            index_to_db.append(index)
+            new_texts.append(texts[index])
+
+    if len(new_texts)>0:
+        embeddings = embbeding_model(new_texts)
+        embeddings=embeddings.tolist()
+
+        items=[]
+        for i in range(len(index_to_db)):
+            index=index_to_db[i]
+            items.append({
+                "vector":embeddings[i], 
+                "item": json.dumps({
+                    "text":new_texts[i],
+                    "title":titles[index], 
+                }),
+                "id":ids[index]
+            })
+        vector.add(items)
+
+    print('#embeddings done',new_texts)
+    return {
+        "texts":new_texts,
+        "embeddings":[],
+        "result":[]
+    }
+
+@app.post("/embedding/search")
+@app.post("/v1/embedding/search")
+async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
+    global embbeding_model
+    global vector
+
+    if embbeding_model==None:
+        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+
+    texts=body.texts
+    embeddings = embbeding_model(texts)
+    embeddings=embeddings.tolist()
+    
+    dirpath=urllib.parse.unquote(body.dirpath)
+    filename=urllib.parse.unquote(body.filename)
+
+    if vector:
+        if vector.dirpath!= dirpath or vector.filename!= filename:
+            vector=None
+
+    if vector==None:
+        vector = LanceDBAssistant( dirpath, filename)
+
+    result=vector.search(embeddings[0],body.limit)
+
+    print('#search done',len(result))
+    return {
+        "result":result,
+         "texts":[],
+        "embeddings":[]
+    }
+
+# 更换目录，范围
+@app.post("/vector/delete")
+@app.post("/v1/vector/delete")
+async def vector_init(body: VectorRequest) -> VectorResponse:
+    global vector
+    
+    dirpath=urllib.parse.unquote(body.dirpath)
+    filename=urllib.parse.unquote(body.filename)
+
+    vector = LanceDBAssistant(dirpath,filename)
+    vector.delete_table(filename)
+
+    return {
+        "tables":vector.list_tables()
+    }
+
+
+
+# 更换目录，范围
+@app.post("/vector/init")
+@app.post("/v1/vector/init")
+async def vector_init(body: VectorRequest) -> VectorResponse:
+    global vector
+    
+    dirpath=urllib.parse.unquote(body.dirpath)
+    filename=urllib.parse.unquote(body.filename)
+
+    vector = LanceDBAssistant(dirpath,filename)
+    
+
+    return {
+        "tables":vector.list_tables()
+    }
+
+
+
 
 
 def start():
