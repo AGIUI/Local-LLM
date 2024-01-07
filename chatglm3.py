@@ -421,7 +421,8 @@ async def vector_init(body: VectorRequest) -> VectorResponse:
     filename=urllib.parse.unquote(body.filename)
 
     vector = LanceDBAssistant(dirpath,filename)
-    vector.delete_table(filename)
+    res=vector.delete_table(filename)
+    print('delete',res)
 
     return {
         "tables":vector.list_tables()

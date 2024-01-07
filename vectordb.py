@@ -66,7 +66,7 @@ class LanceDBAssistant:
 
     def delete_table(self,filename):
         self.connect()
-        self.db.drop_table(filename, ignore_missing=True)
+        return self.db.drop_table(filename, ignore_missing=True)
 
     def get_by_id(self,id):
         self.connect()
