@@ -350,7 +350,7 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
     new_texts=[]
     for index in range(len(ids)):
         item=vector.get_by_id(ids[index])
-        print('##item',item)
+        # print('##item',item)
         if not item:
             index_to_db.append(index)
             new_texts.append(texts[index])
