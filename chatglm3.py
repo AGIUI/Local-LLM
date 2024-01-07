@@ -91,6 +91,7 @@ class EmbeddingRequest(BaseModel):
     dirpath:str
     filename:str
     limit:int= Field(default=5, ge=0)
+    items:Optional[List[dict]] = None
 
 class VectorRequest(BaseModel):
     dirpath:str
@@ -345,6 +346,7 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
     titles=body.titles
     ids=body.ids
     texts=body.texts
+    items=body.items
     
     index_to_db=[]
     new_texts=[]
@@ -359,18 +361,16 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
         embeddings = embbeding_model(new_texts)
         embeddings=embeddings.tolist()
 
-        items=[]
+        vector_items=[]
         for i in range(len(index_to_db)):
             index=index_to_db[i]
-            items.append({
+            item=items[index]
+            vector_items.append({
                 "vector":embeddings[i], 
-                "item": json.dumps({
-                    "text":new_texts[i],
-                    "title":titles[index], 
-                }),
+                "item": json.dumps(item),
                 "id":ids[index]
             })
-        vector.add(items)
+        vector.add(vector_items)
 
     print('#embeddings done',new_texts)
     return {
