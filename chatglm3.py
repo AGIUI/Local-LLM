@@ -351,11 +351,15 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
     index_to_db=[]
     new_texts=[]
     for index in range(len(ids)):
-        item=vector.get_by_id(ids[index])
+        v_item=vector.get_by_id(ids[index])
         # print('##item',item)
-        if not item:
+        if not v_item:
             index_to_db.append(index)
             new_texts.append(texts[index])
+        else:
+            # 存在，更新item
+            item=items[index]
+            vector.update(ids[index],json.dumps(item))
 
     if len(new_texts)>0:
         embeddings = embbeding_model(new_texts)
@@ -441,7 +445,6 @@ async def vector_init(body: VectorRequest) -> VectorResponse:
 
     vector = LanceDBAssistant(dirpath,filename)
     
-
     return {
         "tables":vector.list_tables()
     }

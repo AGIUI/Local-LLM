@@ -43,7 +43,7 @@ class LanceDBAssistant:
         if table is None:
             table = self.create()  # Assuming data is a pyarrow.Table
 
-        table.add(data=data)
+        table.add(data=data,mode="overwrite")
 
         return self.db[self.filename].head()
 
@@ -72,12 +72,17 @@ class LanceDBAssistant:
         self.connect()
         table = self.open()
         if table:
-            items=table.search().select(['id']).to_list()
+            items=table.search().where(f"id = '{id}'", prefilter=True).select(['id']).to_list()
             for item in items:
                 if item['id']==id:
                     return item
         return
-
+    def update(self,id,item):
+        self.connect()
+        table = self.open()
+        if table:
+            table.update(where=f"id = '{id}'", values={"item":item})
+             
 # dirpath = "tmp/sample-lancedb"
 # filename = "my_table2"
 
