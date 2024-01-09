@@ -2,8 +2,10 @@ from llama_cpp import Llama
 
 class LlamaAssistant:
     def __init__(self, model_path):
-        self.llm = Llama(model_path=model_path, chat_format="functionary")
-    
+        self.llm = Llama(model_path=model_path, chat_format="functionary",n_ctx=2048)
+        # self.llm.n_ctx()
+        #  create_embedding // embedding=True
+        # reset
     def pre_messages(self, user_prompt):
         system_prompt = {
             "role": "system",
@@ -22,15 +24,18 @@ class LlamaAssistant:
         }
         
         messages = self.pre_messages(user_prompt)
-        
-        self.llm.create_chat_completion(
+        # print(messages)
+        return self.llm.create_chat_completion(
             messages=messages,
             tools=tools,
             tool_choice=tool_choice
         )
+    
+
+    
 
 # 示例用法
-assistant = LlamaAssistant(model_path="path/to/model")
+assistant = LlamaAssistant(model_path="models/llama/functionary-7b-v1.Q5_K.gguf")
 user_input = "Extract Jason is 25 years old"
 tools = [{
     "type": "function",
@@ -53,12 +58,13 @@ tools = [{
         }
     }
 }]
-tool_choice = [{
+tool_choice = {
     "type": "function",
     "function": {
         "name": "UserDetail"
     }
-}]
+}
 
-assistant.run(user_input, tools, tool_choice)
+result=assistant.run(user_input, tools, tool_choice)
+print('#result#',result)
 
