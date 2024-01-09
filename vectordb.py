@@ -2,6 +2,11 @@ import lancedb
 import pyarrow as pa
 import json
 
+embedding_models=[
+    "",
+    ""
+]
+
 class LanceDBAssistant:
     def __init__(self, dirpath, filename,n=384):
         self.dirpath = dirpath
@@ -22,7 +27,6 @@ class LanceDBAssistant:
 
     def create(self):
         self.connect()
-
         table = self.db.create_table(self.filename, schema=self.schema, mode="overwrite")
         return table
     

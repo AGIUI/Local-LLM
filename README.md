@@ -81,11 +81,11 @@ hw.logicalcpu: 8
 #### win打包
 venv/Scripts/python -s -m pip install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-pyinstaller -F chatglm3.py --clean
+pyinstaller -F app.py --clean
 
-把models拷贝到 dist/目录下，运行 chatglm3.exe 启动
+把models拷贝到 dist/目录下，运行 app.exe 启动
 
-> chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
+> app.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
 
 ## mac
 python -m venv venv
@@ -95,9 +95,9 @@ pip install pydantic_settings
 pip install sse_starlette
 pip install chatglm_cpp-0.3.0-cp310-cp310-macosx_10_9_x86_64.whl
 
-pyinstaller -F chatglm3.py --clean
+pyinstaller -F app.py --clean
 
-把models拷贝到 dist/目录下，运行 chatglm3 启动
+把models拷贝到 dist/目录下，运行 app 启动
 
 
 ##### 感谢开源项目：
