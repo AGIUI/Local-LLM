@@ -188,33 +188,33 @@ async def startup_event():
 
 def init_chatglm3():
     global pipeline
-
-    messages =[]
-    messages.append({
-        "role":"user", "content":"hi"
-    })
-    messages_with_system=[]
-    if CHAT_SYSTEM_PROMPT:
-        messages_with_system.append({
-            "role":"system", "content":CHAT_SYSTEM_PROMPT
+    if pipeline == None:
+        messages =[]
+        messages.append({
+            "role":"user", "content":"hi"
         })
-    messages_with_system += messages
-    print("--------")
-    print(messages_with_system)
-    print("--------")
-    res=pipeline.chat(messages_with_system,max_length=4096,
-                max_context_length=4096,
-                do_sample=0.8 > 0,
-                top_k=0,
-                top_p=0.8,
-                temperature=0.8,
-                repetition_penalty=1.0,
-                num_threads=settings.num_threads,
-                stream=False,)
-    
-    print(res)
-    print("--------")
-    print("End Loading chatglm model")
+        messages_with_system=[]
+        if CHAT_SYSTEM_PROMPT:
+            messages_with_system.append({
+                "role":"system", "content":CHAT_SYSTEM_PROMPT
+            })
+        messages_with_system += messages
+        # print("--------")
+        # print(messages_with_system)
+        # print("--------")
+        res=pipeline.chat(messages_with_system,max_length=4096,
+                    max_context_length=4096,
+                    do_sample=0.8 > 0,
+                    top_k=0,
+                    top_p=0.8,
+                    temperature=0.8,
+                    repetition_penalty=1.0,
+                    num_threads=settings.num_threads,
+                    stream=False,)
+        
+        # print(res)
+        print("--------")
+        print("End Loading chatglm model")
 
 
 def stream_chat(messages, body):
@@ -257,6 +257,19 @@ async def stream_chat_event_publisher(history, body):
         raise e
 
 
+@app.get("/chat/completions")
+@app.get("/v1/chat/completions")
+@app.get("/")
+async def root():
+    init_chatglm3()
+    return {"message": "Welcome to LocalAI API",
+            "models":[
+                embbeding_tokenizer_path,embbeding_model_path,DEFAULT_MODEL_PATH
+            ],
+            "modelName":"LocalAI"
+            }
+
+
 @app.post("/chat/completions")
 @app.post("/v1/chat/completions")
 async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionResponse:
@@ -289,13 +302,6 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
     )
 
 
-@app.get("/")
-async def root():
-    init_chatglm3()
-    return {"message": "Welcome to LocalAI API",
-            "models":[
-                embbeding_tokenizer_path,embbeding_model_path,DEFAULT_MODEL_PATH
-            ]}
 
 
 @app.get("/embedding")
