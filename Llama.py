@@ -48,42 +48,42 @@ class LlamaAssistant:
     
 
 # 示例用法
-assistant = LlamaAssistant(
-    model_path="models/llama/functionary-7b-v1.Q5_K.gguf",
-    chat_format="functionary"
-    )
-user_input = "Extract Jason is 25 years old"
-tools = [{
-    "type": "function",
-    "function": {
-        "name": "UserDetail",
-        "parameters": {
-            "type": "object",
-            "title": "UserDetail",
-            "properties": {
-                "name": {
-                    "title": "Name",
-                    "type": "string"
-                },
-                "age": {
-                    "title": "Age",
-                    "type": "integer"
-                }
-            },
-            "required": ["name", "age"]
-        }
-    }
-}]
-tool_choice = {
-    "type": "function",
-    "function": {
-        "name": "UserDetail"
-    }
-}
+# assistant = LlamaAssistant(
+#     model_path="models/llama/functionary-7b-v1.Q5_K.gguf",
+#     chat_format="functionary"
+#     )
+# user_input = "Extract Jason is 25 years old"
+# tools = [{
+#     "type": "function",
+#     "function": {
+#         "name": "UserDetail",
+#         "parameters": {
+#             "type": "object",
+#             "title": "UserDetail",
+#             "properties": {
+#                 "name": {
+#                     "title": "Name",
+#                     "type": "string"
+#                 },
+#                 "age": {
+#                     "title": "Age",
+#                     "type": "integer"
+#                 }
+#             },
+#             "required": ["name", "age"]
+#         }
+#     }
+# }]
+# tool_choice = {
+#     "type": "function",
+#     "function": {
+#         "name": "UserDetail"
+#     }
+# }
 
-result=assistant.run(user_input, tools, tool_choice)
+# result=assistant.run(user_input, tools, tool_choice)
+# # print('#result#',result)
+# # result=assistant.embedding([user_input,user_input] )
 # print('#result#',result)
-# result=assistant.embedding([user_input,user_input] )
-print('#result#',result)
 
 
