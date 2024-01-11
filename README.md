@@ -75,6 +75,20 @@ mac 查看线程数：
 sysctl hw.logicalcpu
 hw.logicalcpu: 8
 ```
+
+[pyinstall 打包后运行提示第三方库找不到](https://blog.csdn.net/ldg513783697/article/details/119762461)
+
+打开pyinstaller的目录，在hooks目录下创建文件，文件名一定是hook-第三方库.py，比如我用的eventlet库，我就需要创建hook-eventlet.py。
+在该文件中添加如下代码：
+```
+from PyInstaller.utils.hooks import collect_all
+
+datas, binaries, hiddenimports =collect_all('eventlet') #collect_all的参数一定也是第三方库名，不要写错。
+```
+然后在用pyinstaller -F 打包exe,运行就不会报错。 
+
+
+
 #### embedding
 用llama_cpp实现
 

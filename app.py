@@ -5,9 +5,10 @@ import logging
 import time
 from typing import List, Literal, Optional, Union
 
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+# from starlette.lifespan import LifespanHandler
 from pydantic import BaseModel, Field, computed_field
 from pydantic_settings import BaseSettings
 from sse_starlette.sse import EventSourceResponse
@@ -18,7 +19,7 @@ import urllib.parse
 # encoded_str = 'Hello%20World%21'
 # decoded_str = urllib.parse.unquote(encoded_str)
 import chatglm_cpp
-from Llama import LlamaAssistant
+from llama_assistant import LlamaAssistant
 # print(decoded_str)
 from embeddings import DefaultEmbeddingModel
 from vectordb import LanceDBAssistant
@@ -62,7 +63,7 @@ MAX_CONTEXT=512
 
 
 embedding_name='all-MiniLM-L6-v2'
-embbeding_tokenizer_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","tokenizer.json")
+embedding_tokenizer_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","tokenizer.json")
 embedding_model_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","onnx","model_quantized.onnx")
 
 
@@ -170,26 +171,14 @@ class ChatCompletionResponse(BaseModel):
         }
     }
 
-
-settings = Settings()
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
-)
-pipeline = None
-lock = asyncio.Lock()
-
-embedding_model=None
-vector=None
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global base_model_name
     global base_model_path
     global embedding_name
-    global embbeding_tokenizer_path
+    global embedding_tokenizer_path
     global embedding_model_path
-    
+    print('##embedding_model_path',embedding_model_path)
     # 基础模型
     global pipeline
     # embbeding模型
@@ -213,7 +202,7 @@ async def startup_event():
                     )
         
     if embedding_name=='allMiniLML6v2':
-        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+        embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
     elif embedding_name=='llama2':
         if base_model_name=='llama2':
             embedding_model=pipeline.embedding
@@ -224,6 +213,26 @@ async def startup_event():
                     embedding=True
                     )
             embedding_model=llama.embedding
+    print(embedding_name,embedding_model,pipeline)
+    yield
+    
+    
+
+
+settings = Settings()
+# app = FastAPI()
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
+)
+
+
+pipeline = None
+lock = asyncio.Lock()
+
+embedding_model=None
+vector=None
+
 
 
 def init_base_model():
@@ -304,7 +313,7 @@ async def root():
     init_base_model()
     return {"message": "Welcome to LocalAI API",
             "models":[
-                embbeding_tokenizer_path,embedding_model_path,base_model_path
+                embedding_tokenizer_path,embedding_model_path,base_model_path
             ],
             "modelName":"LocalAI"
             }
@@ -346,8 +355,8 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
 
 @app.get("/embedding")
 async def init_embedding():
-    global embedding_model
-    embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+    # global embedding_model
+    # embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
     return {"message": "Welcome to Embedding API"}
 
 @app.post("/embedding")
@@ -355,8 +364,8 @@ async def init_embedding():
 async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
     global embedding_model
     
-    if embedding_model==None:
-        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+    # if embedding_model==None:
+    #     embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
 
     texts=body.texts
     embeddings = embedding_model(texts)
@@ -369,6 +378,7 @@ async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
     }
 
 
+# embedding后，存进数据库
 @app.post("/embedding/add")
 @app.post("/v1/embedding/add")
 async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
@@ -386,8 +396,8 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
 
     print('#vector',vector.dirpath,vector.filename)
 
-    if embedding_model==None:
-        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+    # if embedding_model==None:
+    #     embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
 
     titles=body.titles
     ids=body.ids
@@ -434,8 +444,8 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
     global embedding_model
     global vector
 
-    if embedding_model==None:
-        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+    # if embedding_model==None:
+    #     embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
 
     texts=body.texts
     embeddings = embedding_model(texts) 
@@ -504,8 +514,10 @@ def start():
     global base_model_path
     global MAX_LENGTH
     global MAX_CONTEXT
-    global embbeding_tokenizer_path
+    global embedding_tokenizer_path
     global embedding_model_path
+    global embedding_name
+    global base_model_name
 
     # chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
     # Parse command line arguments
@@ -528,13 +540,12 @@ def start():
             MAX_CONTEXT=int(arg.split("=")[1])
             print('##### MAX_CONTEXT',MAX_CONTEXT) #MAX_CONTEXT=512
 
-        
         if arg.startswith("embedding_name="):
             embedding_name= arg.split("=")[1] 
             print('##### embedding_name',embedding_name)
-        if arg.startswith("embbeding_tokenizer_path="):
-            embbeding_tokenizer_path= arg.split("=")[1] 
-            print('##### embbeding_tokenizer_path',embbeding_tokenizer_path)
+        if arg.startswith("embedding_tokenizer_path="):
+            embedding_tokenizer_path= arg.split("=")[1] 
+            print('##### embedding_tokenizer_path',embedding_tokenizer_path)
 
         if arg.startswith("embedding_model_path="):
             embedding_model_path= arg.split("=")[1] 

@@ -1,6 +1,5 @@
 from llama_cpp import Llama
 
-
 class LlamaAssistant:
     # chat_format = functionary llama-2
     def __init__(self, model_path,chat_format="llama-2",n_ctx=0,embedding=True):
