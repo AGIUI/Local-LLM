@@ -40,7 +40,7 @@ class DefaultEmbeddingModel:
             embeddings = normalize(embeddings).astype(np.float32)
             all_embeddings.append(embeddings)
         
-        return np.concatenate(all_embeddings)
+        return np.concatenate(all_embeddings).tolist()
          
 
 # tokenizer_path="models/all-MiniLM-L6-v2/tokenizer.json"

@@ -1,8 +1,11 @@
 from llama_cpp import Llama
 
+
 class LlamaAssistant:
-    def __init__(self, model_path):
-        self.llm = Llama(model_path=model_path, chat_format="functionary",n_ctx=2048)
+    # chat_format = functionary llama-2
+    def __init__(self, model_path,chat_format="llama-2",n_ctx=0,embedding=True):
+        self.llm = Llama(model_path=model_path, chat_format=chat_format,n_ctx=n_ctx,embedding=embedding)
+        self.chat=self.llm.create_chat_completion
         # self.llm.n_ctx()
         #  create_embedding // embedding=True
         # reset
@@ -22,7 +25,7 @@ class LlamaAssistant:
             "role": "user",
             "content": user_prompt
         }
-        
+ 
         messages = self.pre_messages(user_prompt)
         # print(messages)
         return self.llm.create_chat_completion(
@@ -31,11 +34,24 @@ class LlamaAssistant:
             tool_choice=tool_choice
         )
     
+    def embedding(self,texts):
+        
+        result=[]
+        for data in self.llm.create_embedding(texts)["data"]:
+            result.append(data["embedding"])
 
+        print(len(result))
+        # list(map(float, self.llm.create_embedding(input)["data"][0]["embedding"]))
+        return result
+
+    
     
 
 # 示例用法
-assistant = LlamaAssistant(model_path="models/llama/functionary-7b-v1.Q5_K.gguf")
+assistant = LlamaAssistant(
+    model_path="models/llama/functionary-7b-v1.Q5_K.gguf",
+    chat_format="functionary"
+    )
 user_input = "Extract Jason is 25 years old"
 tools = [{
     "type": "function",
@@ -66,5 +82,8 @@ tool_choice = {
 }
 
 result=assistant.run(user_input, tools, tool_choice)
+# print('#result#',result)
+# result=assistant.embedding([user_input,user_input] )
 print('#result#',result)
+
 

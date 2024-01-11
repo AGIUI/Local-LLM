@@ -5,7 +5,7 @@ import logging
 import time
 from typing import List, Literal, Optional, Union
 
-import chatglm_cpp
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, computed_field
@@ -17,7 +17,8 @@ import urllib.parse
 
 # encoded_str = 'Hello%20World%21'
 # decoded_str = urllib.parse.unquote(encoded_str)
-
+import chatglm_cpp
+from Llama import LlamaAssistant
 # print(decoded_str)
 from embeddings import DefaultEmbeddingModel
 from vectordb import LanceDBAssistant
@@ -48,20 +49,21 @@ main_dir = os.path.dirname(os.path.abspath(executable_path))
 relative_path = os.path.join(main_dir, "models","chatglm3-ggml-q4_0.bin")
 
 current_path = os.getcwd()
-DEFAULT_MODEL_PATH =relative_path
+base_model_name='chatglm3'
+base_model_path =relative_path
 CHAT_SYSTEM_PROMPT = "You are ChatGLM3, a large language model trained by Zhipu.AI. Follow the user's instructions carefully. Respond using markdown."
 
 # os.path.join(current_path, "models/chatglm3-ggml-q4_0.bin")
-if not os.path.exists(DEFAULT_MODEL_PATH):
-    print('##### 模型文件不存在：',DEFAULT_MODEL_PATH)
+if not os.path.exists(base_model_path):
+    print('##### 模型文件不存在：',base_model_path)
 
 MAX_LENGTH=4096
 MAX_CONTEXT=512
 
 
-
+embedding_name='all-MiniLM-L6-v2'
 embbeding_tokenizer_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","tokenizer.json")
-embbeding_model_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","onnx","model_quantized.onnx")
+embedding_model_path=os.path.join(main_dir, "models","all-MiniLM-L6-v2","onnx","model_quantized.onnx")
 
 
 class Settings(BaseSettings):
@@ -177,17 +179,56 @@ app.add_middleware(
 pipeline = None
 lock = asyncio.Lock()
 
-embbeding_model=None
+embedding_model=None
 vector=None
 
 @app.on_event("startup")
 async def startup_event():
+    global base_model_name
+    global base_model_path
+    global embedding_name
+    global embbeding_tokenizer_path
+    global embedding_model_path
+    
+    # 基础模型
     global pipeline
-    pipeline = chatglm_cpp.Pipeline(DEFAULT_MODEL_PATH)
+    # embbeding模型
+    global embedding_model
+
+ 
+    if base_model_name=='chatglm3':
+        pipeline = chatglm_cpp.Pipeline(base_model_path)
+    elif base_model_name=='llama2':
+        pipeline = LlamaAssistant(
+                    model_path=base_model_path,
+                    chat_format="llama-2",
+                    embedding=(embedding_name=='llama2')
+                    )
+        
+    elif base_model_name=='functionary-7b-v1':
+        pipeline = LlamaAssistant(
+                    model_path=base_model_path,
+                    chat_format="functionary",
+                    embedding=(embedding_name=='llama2')
+                    )
+        
+    if embedding_name=='allMiniLML6v2':
+        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
+    elif embedding_name=='llama2':
+        if base_model_name=='llama2':
+            embedding_model=pipeline.embedding
+        else:
+            llama = LlamaAssistant(
+                    model_path=embedding_model_path,
+                    chat_format="llama-2",
+                    embedding=True
+                    )
+            embedding_model=llama.embedding
 
 
-def init_chatglm3():
+def init_base_model():
     global pipeline
+    global base_model_name
     if pipeline == None:
         messages =[]
         messages.append({
@@ -199,10 +240,9 @@ def init_chatglm3():
                 "role":"system", "content":CHAT_SYSTEM_PROMPT
             })
         messages_with_system += messages
-        # print("--------")
-        # print(messages_with_system)
-        # print("--------")
-        res=pipeline.chat(messages_with_system,max_length=4096,
+ 
+        res=pipeline.chat(messages_with_system,
+                          max_length=4096,
                     max_context_length=4096,
                     do_sample=0.8 > 0,
                     top_k=0,
@@ -213,8 +253,8 @@ def init_chatglm3():
                     stream=False,)
         
         # print(res)
-        print("--------")
-        print("End Loading chatglm model")
+        print("--------",res)
+        print("End Loading "+base_model_name+" model")
 
 
 def stream_chat(messages, body):
@@ -261,10 +301,10 @@ async def stream_chat_event_publisher(history, body):
 @app.get("/v1/chat/completions")
 @app.get("/")
 async def root():
-    init_chatglm3()
+    init_base_model()
     return {"message": "Welcome to LocalAI API",
             "models":[
-                embbeding_tokenizer_path,embbeding_model_path,DEFAULT_MODEL_PATH
+                embbeding_tokenizer_path,embedding_model_path,base_model_path
             ],
             "modelName":"LocalAI"
             }
@@ -306,21 +346,21 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
 
 @app.get("/embedding")
 async def init_embedding():
-    global embbeding_model
-    embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+    global embedding_model
+    embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
     return {"message": "Welcome to Embedding API"}
 
 @app.post("/embedding")
 @app.post("/v1/embedding")
 async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
-    global embbeding_model
+    global embedding_model
     
-    if embbeding_model==None:
-        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+    if embedding_model==None:
+        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
 
     texts=body.texts
-    embeddings = embbeding_model(texts)
-    embeddings=embeddings.tolist()
+    embeddings = embedding_model(texts)
+   
     print('#embeddings done',texts)
     return {
         "texts":texts,
@@ -332,7 +372,7 @@ async def embbeding_run(body: EmbeddingRequest) -> EmbeddingResponse:
 @app.post("/embedding/add")
 @app.post("/v1/embedding/add")
 async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
-    global embbeding_model
+    global embedding_model
     global vector
 
     dirpath=urllib.parse.unquote(body.dirpath)
@@ -346,8 +386,8 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
 
     print('#vector',vector.dirpath,vector.filename)
 
-    if embbeding_model==None:
-        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+    if embedding_model==None:
+        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
 
     titles=body.titles
     ids=body.ids
@@ -368,8 +408,7 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
             vector.update(ids[index],json.dumps(item))
 
     if len(new_texts)>0:
-        embeddings = embbeding_model(new_texts)
-        embeddings=embeddings.tolist()
+        embeddings = embedding_model(new_texts) 
 
         vector_items=[]
         for i in range(len(index_to_db)):
@@ -392,15 +431,14 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
 @app.post("/embedding/search")
 @app.post("/v1/embedding/search")
 async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
-    global embbeding_model
+    global embedding_model
     global vector
 
-    if embbeding_model==None:
-        embbeding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embbeding_model_path)
+    if embedding_model==None:
+        embedding_model = DefaultEmbeddingModel(embbeding_tokenizer_path,embedding_model_path)
 
     texts=body.texts
-    embeddings = embbeding_model(texts)
-    embeddings=embeddings.tolist()
+    embeddings = embedding_model(texts) 
     
     dirpath=urllib.parse.unquote(body.dirpath)
     filename=urllib.parse.unquote(body.filename)
@@ -463,21 +501,25 @@ def start():
     import sys
     import uvicorn
     port: int = 8000
-    global DEFAULT_MODEL_PATH
+    global base_model_path
     global MAX_LENGTH
     global MAX_CONTEXT
     global embbeding_tokenizer_path
-    global embbeding_model_path
+    global embedding_model_path
 
     # chatglm3.exe port=8233 model=xxx max_tokens=2048 max_context_length=2048
     # Parse command line arguments
     for arg in sys.argv[1:]:
         if arg.startswith("port="):
             port = int(arg.split("=")[1])
-        if arg.startswith("model="):
-            DEFAULT_MODEL_PATH=arg.split("=")[1]
-            if os.path.exists(DEFAULT_MODEL_PATH):
-                print('##### 模型文件存在：',DEFAULT_MODEL_PATH)
+        if arg.startswith("base_model_name="): 
+            base_model_name=arg.split("=")[1]
+            print('##### base_model_name：',base_model_name)
+        if arg.startswith("base_model_path="):
+            base_model_path=arg.split("=")[1]
+            if os.path.exists(base_model_path):
+                print('##### 模型文件存在：',base_model_path)
+        
         if arg.startswith("max_tokens="): 
             MAX_LENGTH=int(arg.split("=")[1])
             print('##### MAX_LENGTH',MAX_LENGTH) #MAX_LENGTH=2048
@@ -486,13 +528,17 @@ def start():
             MAX_CONTEXT=int(arg.split("=")[1])
             print('##### MAX_CONTEXT',MAX_CONTEXT) #MAX_CONTEXT=512
 
+        
+        if arg.startswith("embedding_name="):
+            embedding_name= arg.split("=")[1] 
+            print('##### embedding_name',embedding_name)
         if arg.startswith("embbeding_tokenizer_path="):
             embbeding_tokenizer_path= arg.split("=")[1] 
             print('##### embbeding_tokenizer_path',embbeding_tokenizer_path)
 
-        if arg.startswith("embbeding_model_path="):
-            embbeding_model_path= arg.split("=")[1] 
-            print('##### embbeding_model_path',embbeding_model_path)
+        if arg.startswith("embedding_model_path="):
+            embedding_model_path= arg.split("=")[1] 
+            print('##### embedding_model_path',embedding_model_path)
             
  
     # 示例用法
