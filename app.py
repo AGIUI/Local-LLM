@@ -145,9 +145,9 @@ class ChatCompletionUsage(BaseModel):
 class ChatCompletionResponse(BaseModel):
     id: str = "chatcmpl"
     model: str = "ChatGLM3"
-    object: Literal["chat.completion", "chat.completion.chunk"]
+    object: Literal["chat.completion", "chat.completion.chunk"]= None
     created: int = Field(default_factory=lambda: int(time.time()))
-    choices: Union[List[ChatCompletionResponseChoice], List[ChatCompletionResponseStreamChoice]]
+    choices: Union[List[ChatCompletionResponseChoice], List[ChatCompletionResponseStreamChoice]]= None
     usage: Optional[ChatCompletionUsage] = None
 
     model_config = {
@@ -325,7 +325,8 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
     if not body.messages:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "empty messages")
 
-    messages = [chatglm_cpp.ChatMessage(role=msg.role, content=msg.content) for msg in body.messages]
+    messages= [chatglm_cpp.ChatMessage(role=msg.role, content=msg.content) for msg in body.messages]
+    # messages = body.messages
     print('Message length',len(messages))
     print('------')
     if body.stream:
@@ -340,15 +341,19 @@ async def create_chat_completion(body: ChatCompletionRequest) -> ChatCompletionR
         top_p=body.top_p,
         temperature=body.temperature,
     )
-    print(f'prompt: "{messages[-1].content}", sync response: "{output.content}"')
-    prompt_tokens = len(pipeline.tokenizer.encode_messages(messages, body.max_context_length))
-    completion_tokens = len(pipeline.tokenizer.encode(output.content, body.max_tokens))
+    if output:
+        # print(output)
+        print(f'prompt: "{messages[-1].content}", sync response: "{output.content}"')
+        prompt_tokens = len(pipeline.tokenizer.encode_messages(messages, body.max_context_length))
+        completion_tokens = len(pipeline.tokenizer.encode(output.content, body.max_tokens))
 
-    return ChatCompletionResponse(
-        object="chat.completion",
-        choices=[ChatCompletionResponseChoice(message=ChatMessage(role="assistant", content=output.content))],
-        usage=ChatCompletionUsage(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens),
-    )
+        return ChatCompletionResponse(
+            object="chat.completion",
+            choices=[ChatCompletionResponseChoice(message=ChatMessage(role="assistant", content=output.content))],
+            usage=ChatCompletionUsage(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens),
+        )
+    
+    return ChatCompletionResponse()
 
 
 

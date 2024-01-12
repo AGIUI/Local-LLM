@@ -1,10 +1,11 @@
 from llama_cpp import Llama
+import json
 
 class LlamaAssistant:
     # chat_format = functionary llama-2
     def __init__(self, model_path,chat_format="llama-2",n_ctx=0,embedding=True):
         self.llm = Llama(model_path=model_path, chat_format=chat_format,n_ctx=n_ctx,embedding=embedding)
-        self.chat=self.llm.create_chat_completion
+        # self.chat=self.llm.create_chat_completion
         # self.llm.n_ctx()
         #  create_embedding // embedding=True
         # reset
@@ -19,6 +20,29 @@ class LlamaAssistant:
             user_prompt
         ]
     
+    def chat(self,*args, **kwargs):
+        
+        messages=kwargs.get('messages')
+        max_length = kwargs.get('max_length')
+        max_context_length = kwargs.get('max_context_length')
+        do_sample = kwargs.get('do_sample')
+        top_p = kwargs.get('top_p')
+        temperature = kwargs.get('temperature')
+        
+        
+        # print( messages,temperature,top_p,max_length)
+         
+        messages=[json.loads(m.json()) for m in messages]
+        # print(messages)
+
+        res=self.llm.create_chat_completion(
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p,
+            max_tokens=max_length)
+        print('res',res)
+        return res
+
     def run(self, user_prompt, tools, tool_choice):
         user_prompt = {
             "role": "user",
@@ -83,6 +107,6 @@ class LlamaAssistant:
 # result=assistant.run(user_input, tools, tool_choice)
 # # print('#result#',result)
 # # result=assistant.embedding([user_input,user_input] )
-# print('#result#',result)
+# print('#result#', result)
 
 
