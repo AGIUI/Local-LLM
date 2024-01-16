@@ -19,7 +19,7 @@ import urllib.parse
 # encoded_str = 'Hello%20World%21'
 # decoded_str = urllib.parse.unquote(encoded_str)
 import chatglm_cpp
-from llama_assistant import LlamaAssistant
+# from llama_assistant import LlamaAssistant
 # print(decoded_str)
 from embeddings import DefaultEmbeddingModel
 from vectordb import LanceDBAssistant
@@ -187,32 +187,32 @@ async def lifespan(app: FastAPI):
  
     if base_model_name=='chatglm3':
         pipeline = chatglm_cpp.Pipeline(base_model_path)
-    elif base_model_name=='llama2':
-        pipeline = LlamaAssistant(
-                    model_path=base_model_path,
-                    chat_format="llama-2",
-                    embedding=(embedding_name=='llama2')
-                    )
+    # elif base_model_name=='llama2':
+    #     pipeline = LlamaAssistant(
+    #                 model_path=base_model_path,
+    #                 chat_format="llama-2",
+    #                 embedding=(embedding_name=='llama2')
+    #                 )
         
-    elif base_model_name=='functionary-7b-v1':
-        pipeline = LlamaAssistant(
-                    model_path=base_model_path,
-                    chat_format="functionary",
-                    embedding=(embedding_name=='llama2')
-                    )
+    # elif base_model_name=='functionary-7b-v1':
+    #     pipeline = LlamaAssistant(
+    #                 model_path=base_model_path,
+    #                 chat_format="functionary",
+    #                 embedding=(embedding_name=='llama2')
+    #                 )
         
     if embedding_name=='allMiniLML6v2':
         embedding_model = DefaultEmbeddingModel(embedding_tokenizer_path,embedding_model_path)
-    elif embedding_name=='llama2':
-        if base_model_name=='llama2':
-            embedding_model=pipeline.embedding
-        else:
-            llama = LlamaAssistant(
-                    model_path=embedding_model_path,
-                    chat_format="llama-2",
-                    embedding=True
-                    )
-            embedding_model=llama.embedding
+    # elif embedding_name=='llama2':
+    #     if base_model_name=='llama2':
+    #         embedding_model=pipeline.embedding
+    #     else:
+    #         llama = LlamaAssistant(
+    #                 model_path=embedding_model_path,
+    #                 chat_format="llama-2",
+    #                 embedding=True
+    #                 )
+    #         embedding_model=llama.embedding
     print(embedding_name,embedding_model,pipeline)
     yield
     
