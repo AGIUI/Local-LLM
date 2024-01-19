@@ -68,6 +68,10 @@ class LanceDBAssistant:
 
     def list_tables(self):
         self.connect()
+        result=[]
+        for name in self.db.table_names():
+            print(self.db[name].head())
+
         return self.db.table_names()
 
     def delete_table(self,filename):
