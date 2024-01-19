@@ -440,7 +440,8 @@ async def embbeding_run_add(body: EmbeddingRequest) -> EmbeddingResponse:
                 "item": json.dumps(item),
                 "id":ids[index]
             })
-        vector.add(vector_items)
+        res=vector.add(vector_items)
+        print(res)
 
     print('#embeddings done',new_texts)
     return {
