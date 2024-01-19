@@ -47,7 +47,9 @@ class LanceDBAssistant:
         if table is None:
             table = self.create()  # Assuming data is a pyarrow.Table
 
-        table.add(data=data,mode="overwrite")
+        table.add(data=data,
+                #   mode="overwrite" //这个导致了bug，全部覆盖了
+                  )
 
         return self.db[self.filename].head()
 

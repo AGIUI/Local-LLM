@@ -107,6 +107,9 @@ source venv/bin/activate
 pip install fastapi
 pip install pydantic_settings
 pip install sse_starlette
+pip install tokenizers
+pip install onnxruntime
+pip install lancedb
 pip install chatglm_cpp-0.3.0-cp310-cp310-macosx_10_9_x86_64.whl
 
 pyinstaller -F app.py --clean
